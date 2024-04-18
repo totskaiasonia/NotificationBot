@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EmptyBot
+namespace NotificationBot.Bots
 {
     public class EmptyBot : ActivityHandler
     {

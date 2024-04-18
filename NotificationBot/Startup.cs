@@ -5,11 +5,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NotificationBot.Bots;
+using System.Collections.Concurrent;
 
-namespace EmptyBot
+namespace NotificationBot
 {
     public class Startup
     {
@@ -34,8 +37,11 @@ namespace EmptyBot
             // Create the Bot Adapter with error handling enabled.
             services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
 
+            // Create a global hashset for our ConversationReferences
+            services.AddSingleton<ConcurrentDictionary<string, ConversationReference>>();
+
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-            services.AddTransient<IBot, EmptyBot>();
+            services.AddTransient<IBot, ProactiveBot>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
