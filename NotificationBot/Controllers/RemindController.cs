@@ -4,30 +4,40 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
+using NotificationBot.Models;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Threading.Tasks;
 using System.Threading;
+using System;
 
 namespace NotificationBot.Controllers
 {
-    [Route("api/notify")]
+    [Route("api/remind")]
     [ApiController]
-    public class NotifyController : ControllerBase
+    public class RemindController : ControllerBase
     {
         private readonly IBotFrameworkHttpAdapter _adapter;
         private readonly string _appId;
         private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
 
-        public NotifyController(IBotFrameworkHttpAdapter adapter, IConfiguration configuration, ConcurrentDictionary<string, ConversationReference> conversationReferences)
+        private NewsModel passData = new NewsModel();
+
+        public RemindController(IBotFrameworkHttpAdapter adapter, IConfiguration configuration, ConcurrentDictionary<string, ConversationReference> conversationReferences)
         {
             _adapter = adapter;
             _conversationReferences = conversationReferences;
             _appId = configuration["MicrosoftAppId"] ?? string.Empty;
         }
 
-        public async Task<IActionResult> Get()
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] NewsModel data)
         {
+            await Console.Out.WriteLineAsync(data.ToString());
+            passData.Title = data.Title;
+            passData.Date = data.Date;
+            passData.Category = data.Category;
+
             foreach (var conversationReference in _conversationReferences.Values)
             {
                 await ((BotAdapter)_adapter).ContinueConversationAsync(_appId, conversationReference, BotCallback, default(CancellationToken));
@@ -43,11 +53,9 @@ namespace NotificationBot.Controllers
         }
 
 
-
         private async Task BotCallback(ITurnContext turnContext, CancellationToken cancellationToken)
         {
-
-            await turnContext.SendActivityAsync("proactive hello");
+            await turnContext.SendActivityAsync(MessageFactory.Text("This is a reminder sample."));
         }
     }
 }
