@@ -35,7 +35,11 @@ namespace API.Controllers
                 await foreach (TableEntity entity in results)
                 {
                     Console.WriteLine(entity.GetString("RowKey"));
-                    return Ok(entity.GetString("RowKey"));
+                    return Ok(new
+                    {
+                        PartitioniKey=entity.PartitionKey,
+                        RowKey=entity.RowKey,
+                    });
                 }
                 return NotFound();
             }
