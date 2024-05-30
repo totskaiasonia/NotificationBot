@@ -9,5 +9,6 @@ namespace API.Models
         public DateTime Date { get; set; }
         public string Category { get; set; }
         public string UsersIds { get; set; } = JsonSerializer.Serialize(new List<string>());
+        public string MaterialsUrls { get; set; } = JsonSerializer.Serialize(new List<string>());
     }
 }

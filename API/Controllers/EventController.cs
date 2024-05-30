@@ -35,7 +35,6 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]EventModel subscribeEvent)
         {
-            await Console.Out.WriteLineAsync();
             try
             {
                 EventEntity eventEntity = new EventEntity
@@ -45,7 +44,6 @@ namespace API.Controllers
                     Title = subscribeEvent.Title,
                     Date = subscribeEvent.Date,
                     Category = subscribeEvent.Category,
-                    UsersIds = JsonSerializer.Serialize(subscribeEvent.UsersIds),
                 };
                 await Console.Out.WriteLineAsync(eventEntity.ToString());
                 await _tableClient.AddEntityAsync(eventEntity);
@@ -63,13 +61,6 @@ namespace API.Controllers
         [HttpPatch("subscribe/{categoryId}/{eventId}")]
         public async Task<IActionResult> Subscribe(string categoryId, string eventId, [FromBody] UserEntity subscriber)
         {
-            // create entity in table storage
-            const string tableName = "events";
-            var tableClient = new TableClient(_connectionString, tableName);
-
-            tableClient.CreateIfNotExists();
-
-
             EventEntity eventEntity = await _tableClient.GetEntityAsync<EventEntity>(categoryId, eventId);
 
             if (eventEntity == null)
@@ -77,11 +68,28 @@ namespace API.Controllers
                 return NotFound();
             }
 
-            //eventEntity.UsersIds.Append(subscriber.RowKey);
-            List <string> usersIds = JsonSerializer.Deserialize<List<string>>("[]");
+            List <string> usersIds = JsonSerializer.Deserialize<List<string>>(eventEntity.UsersIds);
             usersIds.Add(subscriber.RowKey);
             eventEntity.UsersIds = JsonSerializer.Serialize(usersIds);
-            await tableClient.UpdateEntityAsync(eventEntity, eventEntity.ETag);
+            await _tableClient.UpdateEntityAsync(eventEntity, eventEntity.ETag);
+
+            return Ok();
+        }
+
+        [HttpPatch("{categoryId}/{eventId}/materials/save")]
+        public async Task<IActionResult> AddMaterials(string categoryId, string eventId, [FromBody] string url)
+        {
+            EventEntity eventEntity = await _tableClient.GetEntityAsync<EventEntity>(categoryId, eventId);
+
+            if (eventEntity == null)
+            {
+                return NotFound();
+            }
+
+            List<string> materialsUrls = JsonSerializer.Deserialize<List<string>>(eventEntity.MaterialsUrls);
+            materialsUrls.Add(url);
+            eventEntity.MaterialsUrls = JsonSerializer.Serialize(materialsUrls);
+            await _tableClient.UpdateEntityAsync(eventEntity, eventEntity.ETag);
 
             return Ok();
         }
